@@ -1,24 +1,14 @@
 """阶段2：数据预处理 — 异常值/特征工程/标准化"""
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import seaborn as sns
-import os
 import pickle
-
-plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
-plt.rcParams["axes.unicode_minus"] = False
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CHART_DIR = os.path.join(ROOT, "output", "charts")
-DATA_DIR = os.path.join(ROOT, "data")
-os.makedirs(CHART_DIR, exist_ok=True)
+from sklearn.preprocessing import StandardScaler
+from config import *
 
 
 def load_data():
-    return pd.read_csv(os.path.join(DATA_DIR, "sampled_laptops.csv"))
+    return pd.read_csv(SAMPLED_DATA)
 
 
 def check_outliers(df):
@@ -53,7 +43,7 @@ def plot_outlier_box(df):
     fig.suptitle("关键特征箱线图（含异常值标记）", fontsize=14, fontweight="bold")
     fig.tight_layout()
     path = os.path.join(CHART_DIR, "06_outlier_boxplots.png")
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=CHART_DPI, bbox_inches="tight")
     plt.close(fig)
     print(f"  [图] {path}")
     return path
@@ -78,19 +68,14 @@ def feature_engineering(df):
 
 def standardize(df):
     """标准化"""
-    from sklearn.preprocessing import StandardScaler
     print("\n=== 标准化 ===")
-    feats = ["CPU_Cores", "CPU_Frequency_GHz", "RAM_GB", "Storage_GB",
-             "CPU_Performance_Score", "GPU_Performance_Score",
-             "Overall_Performance_Score", "Price_USD",
-             "Price_Performance_Ratio", "Perf_Per_Core",
-             "RAM_Storage_Ratio", "GPU_Weight"]
+    feats = NUMERIC_COLS
     scaler = StandardScaler()
     df_scaled = scaler.fit_transform(df[feats])
     df_scaled = pd.DataFrame(df_scaled, columns=[f"{c}_scaled" for c in feats])
     print(f"  标准化特征数: {len(feats)}")
     # 保存标准化器
-    with open(os.path.join(DATA_DIR, "scaler.pkl"), "wb") as f:
+    with open(SCALER_PATH, "wb") as f:
         pickle.dump(scaler, f)
     print(f"  已保存 scaler")
     return df_scaled, feats
@@ -98,11 +83,9 @@ def standardize(df):
 
 def save_processed(df, df_scaled):
     """保存处理后的数据"""
-    # 合并
     df_out = pd.concat([df, df_scaled], axis=1)
-    path = os.path.join(DATA_DIR, "processed.csv")
-    df_out.to_csv(path, index=False)
-    print(f"\n✅ 处理后数据: {path}  形状 {df_out.shape}")
+    df_out.to_csv(PROCESSED_DATA, index=False)
+    print(f"\n✅ 处理后数据: {PROCESSED_DATA}  形状 {df_out.shape}")
     return df_out
 
 

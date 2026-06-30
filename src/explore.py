@@ -1,24 +1,13 @@
 """阶段1：数据探索与可视化"""
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn as sns
-import os
-
-plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
-plt.rcParams["axes.unicode_minus"] = False
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CHART_DIR = os.path.join(ROOT, "output", "charts")
-os.makedirs(CHART_DIR, exist_ok=True)
+from config import *
 
 
 def load_data():
-    path = os.path.join(ROOT, "data", "sampled_laptops.csv")
-    df = pd.read_csv(path)
-    return df
+    return pd.read_csv(SAMPLED_DATA)
 
 
 def explore(df: pd.DataFrame):
@@ -49,7 +38,7 @@ def plot_usage_pie(df):
     ax.set_title("使用类型分布", fontsize=14, fontweight="bold")
     fig.tight_layout()
     path = os.path.join(CHART_DIR, "01_usage_distribution.png")
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=CHART_DPI, bbox_inches="tight")
     plt.close(fig)
     print(f"  [图] {path}")
     return path
@@ -76,7 +65,7 @@ def plot_price_distribution(df):
     axes[1].legend()
     fig.tight_layout()
     path = os.path.join(CHART_DIR, "02_price_distribution.png")
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=CHART_DPI, bbox_inches="tight")
     plt.close(fig)
     print(f"  [图] {path}")
     return path
@@ -97,7 +86,7 @@ def plot_correlation_heatmap(df):
     ax.set_title("数值特征相关性热力图", fontsize=14, fontweight="bold")
     fig.tight_layout()
     path = os.path.join(CHART_DIR, "03_correlation_heatmap.png")
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=CHART_DPI, bbox_inches="tight")
     plt.close(fig)
     print(f"  [图] {path}")
     return path
@@ -117,7 +106,7 @@ def plot_box_price_by_type(df):
     ax.set_title("各使用类型价格箱线图", fontsize=14, fontweight="bold")
     fig.tight_layout()
     path = os.path.join(CHART_DIR, "04_price_boxplot.png")
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=CHART_DPI, bbox_inches="tight")
     plt.close(fig)
     print(f"  [图] {path}")
     return path
@@ -138,7 +127,7 @@ def plot_performance_scatter(df):
     ax.legend()
     fig.tight_layout()
     path = os.path.join(CHART_DIR, "05_price_vs_performance.png")
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+    fig.savefig(path, dpi=CHART_DPI, bbox_inches="tight")
     plt.close(fig)
     print(f"  [图] {path}")
     return path

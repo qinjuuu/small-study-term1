@@ -10,10 +10,6 @@ build/
 # IDE
 .idea/
 
-# Data (keep raw + processed, ignore intermediate)
-data/raw_laptops.csv
-data/cache/
-
 # OS
 .DS_Store
 Thumbs.db
