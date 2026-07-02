@@ -1,5 +1,6 @@
 """阶段3：线性回归 —— 价格预测综合性能分"""
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -39,7 +40,10 @@ def run(df):
     # ── 回归散点图 ──
     fig, ax = plt.subplots(figsize=(9, 6))
     ax.scatter(X_test, y_test, alpha=0.3, s=10, color=PALETTE["blue"], label="实际值")
-    x_line = np.linspace(X_test.min(), X_test.max(), 100).reshape(-1, 1)
+    x_line = pd.DataFrame(
+        np.linspace(X_test["Price_USD"].min(), X_test["Price_USD"].max(), 100),
+        columns=["Price_USD"],
+    )
     ax.plot(x_line, lr.predict(x_line), "r-", linewidth=2, label="回归线")
     ax.set_xlabel("Price (USD)")
     ax.set_ylabel("综合性能分")

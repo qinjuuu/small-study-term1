@@ -64,8 +64,8 @@ PROFILE_COLS = [
 ]
 
 # ═══════════ 文件路径 ═══════════
-RAW_DATA = os.path.join(DATA_DIR, "raw_laptops.csv")
-SAMPLED_DATA = os.path.join(DATA_DIR, "sampled_laptops.csv")
+RAW_DATA = os.path.join(DATA_DIR, "real_full.csv")
+SAMPLED_DATA = os.path.join(DATA_DIR, "real_analysis.csv")
 PROCESSED_DATA = os.path.join(DATA_DIR, "processed.csv")
 CLUSTERED_DATA = os.path.join(DATA_DIR, "clustered.csv")
 SCALER_PATH = os.path.join(DATA_DIR, "scaler.pkl")

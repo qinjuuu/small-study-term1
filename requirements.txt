@@ -7,3 +7,12 @@ scikit-learn>=1.3.0
 matplotlib>=3.7.0
 seaborn>=0.12.0
 xgboost>=2.0.0
+
+# 生成真实数据文件（分两档：全量 1.2M + 分析用 50k 采样）
+python src/real_data_adapter.py
+
+# 首次全量分析跑一遍（50k 采样，速度快）
+python src/main.py
+
+# DIY 推荐工具（加载全量 1.2M，启动稍慢但数据全）
+python src/diy_tool.py
