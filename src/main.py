@@ -61,21 +61,48 @@ def main():
     from model_kmeans import run as run_kmeans
     result_km = run_kmeans(df_processed)
 
+    # ────────── 阶段4b：进阶回归对比（新增）──────
+    print("\n" + "=" * 60)
+    print(">>> 阶段4b：进阶回归（多元线性 / Ridge / Lasso / XGBoost）")
+    print("=" * 60)
+    from model_linear_advanced import run as run_linear_advanced
+    result_lr_adv = run_linear_advanced(df_processed)
+
+    # ────────── 阶段6b：GMM 聚类（新增）──────
+    print("\n" + "=" * 60)
+    print(">>> 阶段6b：GMM 高斯混合模型聚类")
+    print("=" * 60)
+    from model_gmm import run as run_gmm
+    result_gmm = run_gmm(df_processed)
+
+    # ────────── 阶段7：全模型对比（新增）──────
+    print("\n" + "=" * 60)
+    print(">>> 阶段7：全模型横向对比")
+    print("=" * 60)
+    from model_compare import run as run_compare
+    result_compare = run_compare(df_processed)
+
     # ────────── 汇总 ──────────
     print("\n" + "=" * 60)
-    print("🎉 全部分析流程完成！")
+    print(" 全部分析流程完成！")
     print("=" * 60)
-    print(f"  线性回归  R² = {result_lr['r2']:.4f}")
-    print(f"  KNN分类   准确率 = {result_knn['accuracy']:.4f}  (K={result_knn['best_k']})")
-    print(f"  K-means   K={result_km['k']}, 轮廓系数={result_km['silhouette']:.4f}")
-    print(f"\n  图表：output/charts/  (共13张)")
+    print(f"  原线性回归        R² = {result_lr['r2']:.4f}")
+    print(f"  最佳回归模型      R² = {result_lr_adv['best_r2']:.4f}  ({result_lr_adv['best_model']})")
+    print(f"  KNN分类           准确率 = {result_knn['accuracy']:.4f}  (K={result_knn['best_k']})")
+    print(f"  K-means           K={result_km['k']}, 轮廓系数={result_km['silhouette']:.4f}")
+    print(f"  GMM               K={result_gmm['k']}, 轮廓系数={result_gmm['silhouette']:.4f}")
+    print(f"  GMM 边界用户       {result_gmm['n_boundary']} 人")
+    print(f"\n  图表：output/charts/  (共20张)")
     print(f"  报告：output/reports/analysis_report.md")
     print(f"  数据：data/")
 
     return {
         "linear_regression": result_lr,
+        "linear_advanced": result_lr_adv,
         "knn": result_knn,
         "kmeans": result_km,
+        "gmm": result_gmm,
+        "model_compare": result_compare,
     }
 
 

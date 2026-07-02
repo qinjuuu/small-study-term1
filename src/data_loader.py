@@ -63,4 +63,4 @@ if __name__ == "__main__":
     df = load_and_sample(csv_path, n=8000)
     basic_explore(df)
     save_sampled(df)
-    print("\n✅ 阶段1完成")
+    print("\n 阶段1完成")

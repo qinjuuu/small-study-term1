@@ -93,3 +93,9 @@ def init_env():
     # 中文字体
     plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei"]
     plt.rcParams["axes.unicode_minus"] = False
+    # SimHei 无 bold 变体，用 regular 替代避免字体警告
+    import warnings
+    import logging
+    logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+    warnings.filterwarnings("ignore", message="Glyph.*missing from font")
+    warnings.filterwarnings("ignore", message="findfont:.*")
