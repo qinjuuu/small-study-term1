@@ -301,11 +301,12 @@ elif page == "🔍 特征探索":
         df_pc_scaled = df_pc.copy()
         df_pc_scaled[pc_features] = scaler_pc.fit_transform(df_pc[pc_features])
 
+        # parallel_coordinates 不支持分类color，用数值列着色
+        color_col = PERF_COL if PERF_COL and PERF_COL in df_pc_scaled.columns else "Price_CNY"
         fig_pc = px.parallel_coordinates(
             df_pc_scaled,
             dimensions=pc_features,
-            color="Usage_Type",
-            color_discrete_map=USAGE_COLORS,
+            color=color_col,
             labels={c: c for c in pc_features},
         )
         fig_pc.update_layout(height=520, margin=dict(t=20, b=20, l=20, r=20))
