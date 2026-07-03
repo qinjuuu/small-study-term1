@@ -69,9 +69,9 @@ def load_data():
     clustered = pd.read_csv(CLUSTERED_DATA) if os.path.exists(CLUSTERED_DATA) else None
     # USD → CNY (人民币)
     if "Price_CNY" in sampled.columns:
-        sampled["Price_USD"] = sampled["Price_CNY"]
+        sampled["Price_CNY"] = sampled["Price_CNY"]
     else:
-        sampled["Price_USD"] = (sampled["Price_USD"] * EXCHANGE_RATE).round(0).astype(int)
+        sampled["Price_CNY"] = (sampled["Price_CNY"] * EXCHANGE_RATE).round(0).astype(int)
     return sampled, processed, clustered
 
 df_raw, df_scaled, df_cluster = load_data()
@@ -86,7 +86,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🔍 全局筛选")
 
-    price_min, price_max = int(df_raw["Price_USD"].min()), int(df_raw["Price_USD"].max())
+    price_min, price_max = int(df_raw["Price_CNY"].min()), int(df_raw["Price_CNY"].max())
     price_range = st.slider("价格区间 (元)", price_min, price_max,
                             (price_min, price_max), step=100)
 
@@ -98,7 +98,7 @@ with st.sidebar:
 
     # 应用筛选
     df = df_raw[
-        df_raw["Price_USD"].between(price_range[0], price_range[1]) &
+        df_raw["Price_CNY"].between(price_range[0], price_range[1]) &
         df_raw["Usage_Type"].isin(usage_filter) &
         df_raw["Brand"].isin(brand_filter)
     ].copy()
@@ -153,7 +153,7 @@ if page == "🏠 欢迎页":
     with col3:
         st.metric("🏷️ 品牌数", df_raw["Brand"].nunique())
     with col4:
-        st.metric("💰 均价", f"¥{df_raw['Price_USD'].mean():.0f}")
+        st.metric("💰 均价", f"¥{df_raw['Price_CNY'].mean():.0f}")
 
     st.markdown("---")
 
@@ -161,7 +161,7 @@ if page == "🏠 欢迎页":
     if PERF_COL:
         fig_welcome = px.scatter(
             df_raw.sample(min(3000, len(df_raw)), random_state=42),
-            x="Price_USD", y=PERF_COL,
+            x="Price_CNY", y=PERF_COL,
             color="Usage_Type",
             size="RAM_GB" if "RAM_GB" in df_raw.columns else None,
             color_discrete_map=USAGE_COLORS,
@@ -186,7 +186,7 @@ elif page == "📊 数据总览":
     col1, col2, col3, col4 = st.columns(4)
     with col1: st.metric("样本数", len(df))
     with col2: st.metric("使用类型", df["Usage_Type"].nunique())
-    with col3: st.metric("平均价格", f"¥{df['Price_USD'].mean():.0f}")
+    with col3: st.metric("平均价格", f"¥{df['Price_CNY'].mean():.0f}")
     with col4: st.metric("平均性能分", f"{df[PERF_COL].mean():.1f}" if PERF_COL else "N/A")
 
     st.markdown("---")
@@ -218,7 +218,7 @@ elif page == "📊 数据总览":
             subset = df[df["Usage_Type"] == ut]
             fig_price.add_trace(go.Violin(
                 x=subset["Usage_Type"],
-                y=subset["Price_USD"],
+                y=subset["Price_CNY"],
                 name=ut,
                 line_color=USAGE_COLORS.get(ut, "#333"),
                 fillcolor=USAGE_COLORS.get(ut, "#333"),
@@ -236,7 +236,7 @@ elif page == "📊 数据总览":
     for ut in df["Usage_Type"].unique():
         subset = df[df["Usage_Type"] == ut]
         fig_box.add_trace(go.Box(
-            x=subset["Price_USD"],
+            x=subset["Price_CNY"],
             name=ut,
             marker_color=USAGE_COLORS.get(ut, "#999"),
             boxmean="sd",
@@ -293,7 +293,7 @@ elif page == "🔍 特征探索":
 
     from sklearn.preprocessing import MinMaxScaler
     pc_features = ["CPU_Cores", "RAM_GB", "Storage_GB",
-                   "GPU_Performance_Score", "Price_USD"]
+                   "GPU_Performance_Score", "Price_CNY"]
     pc_features = [c for c in pc_features if c in df.columns]
     if len(pc_features) >= 3:
         df_pc = df[pc_features + ["Usage_Type"]].dropna()
@@ -318,7 +318,7 @@ elif page == "🔍 特征探索":
     splom_features = st.multiselect(
         "选择4个特征（建议选最重要的）",
         num_cols,
-        default=[c for c in ["Price_USD", "CPU_Cores", "GPU_Performance_Score",
+        default=[c for c in ["Price_CNY", "CPU_Cores", "GPU_Performance_Score",
                               "RAM_GB"] if c in df.columns][:4],
         key="splom_feat",
     )
@@ -373,7 +373,7 @@ elif page == "🌐 3D 可视化":
     st.subheader("🎲 3D 散点图")
     col1, col2, col3 = st.columns(3)
     with col1:
-        x3d = st.selectbox("X 轴", num_cols, index=num_cols.index("Price_USD") if "Price_USD" in num_cols else 0, key="x3d")
+        x3d = st.selectbox("X 轴", num_cols, index=num_cols.index("Price_CNY") if "Price_CNY" in num_cols else 0, key="x3d")
     with col2:
         y3d = st.selectbox("Y 轴", num_cols, index=num_cols.index("CPU_Cores") if "CPU_Cores" in num_cols else 1, key="y3d")
     with col3:
@@ -389,7 +389,7 @@ elif page == "🌐 3D 可视化":
         color_discrete_map=USAGE_COLORS if color_3d == "Usage_Type" else None,
         size="RAM_GB" if "RAM_GB" in df.columns else None,
         opacity=0.7,
-        hover_data=["Brand", "Price_USD"],
+        hover_data=["Brand", "Price_CNY"],
     )
     fig_3d.update_layout(
         height=700,
@@ -463,7 +463,7 @@ elif page == "📉 回归分析":
         use_multivariate = st.checkbox("启用多元回归", value=True)
         if use_multivariate:
             default_feats = [c for c in ["GPU_Performance_Score", "CPU_Cores",
-                                         "RAM_GB", "Price_USD"]
+                                         "RAM_GB", "Price_CNY"]
                              if c in df.columns]
             selected_features = st.multiselect(
                 "选择回归特征", feature_cols,
@@ -471,7 +471,7 @@ elif page == "📉 回归分析":
                 key="lr_feats",
             )
         else:
-            selected_features = ["Price_USD"]
+            selected_features = ["Price_CNY"]
 
     # 训练
     if len(selected_features) == 0:
@@ -569,7 +569,7 @@ elif page == "🎯 KNN 分类":
     st.title("🎯 KNN 分类分析")
 
     from sklearn.neighbors import KNeighborsClassifier
-    from sklearn.model_selection import cross_val_score
+    from sklearn.model_selection import cross_val_score, train_test_split
     from sklearn.metrics import confusion_matrix, classification_report
     from sklearn.preprocessing import StandardScaler
 
@@ -583,7 +583,7 @@ elif page == "🎯 KNN 分类":
         selected_knn = st.multiselect(
             "选择KNN特征", feature_cols,
             default=[c for c in ["CPU_Cores", "CPU_Frequency_GHz", "RAM_GB",
-                                  "GPU_Performance_Score", "Price_USD"]
+                                  "GPU_Performance_Score", "Price_CNY"]
                      if c in df.columns][:4],
             key="knn_feat",
         )
@@ -679,7 +679,7 @@ elif page == "🎪 K-Means 聚类":
         selected_cf = st.multiselect(
             "选择聚类特征", cluster_features,
             default=[c for c in ["CPU_Cores", "RAM_GB",
-                                  "GPU_Performance_Score", "Price_USD"]
+                                  "GPU_Performance_Score", "Price_CNY"]
                      if c in df.columns][:4],
             key="km_feat",
         )
@@ -787,7 +787,7 @@ elif page == "✨ GMM 软聚类":
     selected_gmm = st.multiselect(
         "选择GMM特征", cluster_features,
         default=[c for c in ["CPU_Cores", "RAM_GB",
-                              "GPU_Performance_Score", "Price_USD"]
+                              "GPU_Performance_Score", "Price_CNY"]
                  if c in df.columns][:3],
         key="gmm_feat",
     )
@@ -991,7 +991,7 @@ elif page == "🌀 聚类动画":
                 marker=dict(symbol="x", size=14, color="black",
                              line=dict(width=2, color="white")),
                 name="质心" if iter_val == 0 else None,
-                showlegend=(iter_val == 0),
+                showlegend=bool(iter_val == 0),
                 legendgroup="centers",
             ))
 
@@ -1039,7 +1039,7 @@ elif page == "📐 模型对比":
         from sklearn.preprocessing import StandardScaler
 
         if PERF_COL:
-            Xc = df[["Price_USD", "GPU_Performance_Score", "CPU_Cores"]].fillna(0)
+            Xc = df[["Price_CNY", "GPU_Performance_Score", "CPU_Cores"]].fillna(0)
             yc = df[PERF_COL]
 
             models = {
@@ -1073,8 +1073,8 @@ elif page == "🚨 异常检测":
 
     iso_features = st.multiselect(
         "选择异常检测特征",
-        ["Price_USD", PERF_COL],
-        default=["Price_USD", PERF_COL] if PERF_COL else ["Price_USD"],
+        ["Price_CNY", PERF_COL],
+        default=["Price_CNY", PERF_COL] if PERF_COL else ["Price_CNY"],
         key="iso_feat",
     )
 
@@ -1097,11 +1097,11 @@ elif page == "🚨 异常检测":
     with col_b:
         st.metric("📊 异常比例", f"{n_anomalies/len(df)*100:.1f}%")
     with col_c:
-        st.metric("💰 正常均价", f"¥{df_iso[~df_iso['Is_Anomaly']]['Price_USD'].mean():.0f}")
+        st.metric("💰 正常均价", f"¥{df_iso[~df_iso['Is_Anomaly']]['Price_CNY'].mean():.0f}")
 
     st.subheader("🗺️ 异常检测结果（红色 = 异常）")
     fig_iso = px.scatter(
-        df_iso, x="Price_USD", y=PERF_COL,
+        df_iso, x="Price_CNY", y=PERF_COL,
         color="Is_Anomaly",
         size="RAM_GB" if "RAM_GB" in df.columns else None,
         color_discrete_map={False: "#5B9BD5", True: "#FF6384"},
@@ -1116,7 +1116,7 @@ elif page == "🚨 异常检测":
 
     st.subheader("🚨 异常产品列表（按价格排序）")
     st.dataframe(
-        df_iso[df_iso["Is_Anomaly"]].sort_values("Price_USD", ascending=False),
+        df_iso[df_iso["Is_Anomaly"]].sort_values("Price_CNY", ascending=False),
         use_container_width=True,
     )
 
@@ -1132,9 +1132,9 @@ elif page == "🏷️ 品牌分析":
 
     st.subheader("🏆 各品牌统计")
     brand_stats = df.groupby("Brand").agg(
-        产品数=("Price_USD", "count"),
-        平均价格=("Price_USD", "mean"),
-        价格标准差=("Price_USD", "std"),
+        产品数=("Price_CNY", "count"),
+        平均价格=("Price_CNY", "mean"),
+        价格标准差=("Price_CNY", "std"),
     )
     if PERF_COL:
         brand_stats["平均性能"] = df.groupby("Brand")[PERF_COL].mean()
@@ -1165,7 +1165,7 @@ elif page == "🏷️ 品牌分析":
         subset = df[df["Brand"] == brand]
         fig_violin.add_trace(go.Violin(
             x=subset["Brand"],
-            y=subset["Price_USD"],
+            y=subset["Price_CNY"],
             name=brand,
             box_visible=True,
             meanline_visible=True,
@@ -1190,7 +1190,7 @@ elif page == "🎮 预测模拟器":
 
     # 训练KNN和回归模型
     knn_features = ["CPU_Cores", "CPU_Frequency_GHz", "RAM_GB",
-                    "Storage_GB", "GPU_Performance_Score", "Price_USD"]
+                    "Storage_GB", "GPU_Performance_Score", "Price_CNY"]
     knn_features = [c for c in knn_features if c in df.columns]
 
     if len(knn_features) < 2:
@@ -1224,10 +1224,10 @@ elif page == "🎮 预测模拟器":
     with col2:
         st.markdown("#### 性能 & 价格")
         gpu_score = st.slider("GPU 性能分", 0, 100, 50)
-        price_usd = st.slider("价格 (USD)", 200, 5000, 1000, 100)
+        price_cny = st.slider("价格 (元)", 2000, 50000, 10000, 500)
 
     # 预测
-    input_vec = np.array([[cpu_cores, cpu_freq, ram_gb, storage_gb, gpu_score, price_usd]])
+    input_vec = np.array([[cpu_cores, cpu_freq, ram_gb, storage_gb, gpu_score, price_cny / 7.25]])
     input_scaled = scaler_sim.transform(input_vec)
 
     pred_type = knn_sim.predict(input_scaled)[0]
@@ -1277,14 +1277,14 @@ elif page == "🎮 预测模拟器":
     if PERF_COL:
         fig_compare = px.scatter(
             df.sample(min(3000, len(df)), random_state=42),
-            x="Price_USD", y=PERF_COL,
+            x="Price_CNY", y=PERF_COL,
             color="Usage_Type",
             color_discrete_map=USAGE_COLORS,
             opacity=0.3,
             title="你的配置（★） vs 真实数据",
         )
         fig_compare.add_trace(go.Scatter(
-            x=[price_usd],
+            x=[price_cny],
             y=[pred_perf] if pred_perf else [0],
             mode="markers",
             marker=dict(symbol="star", size=20, color="red",
@@ -1304,7 +1304,7 @@ elif page == "🎁 推荐引擎":
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        budget = st.slider("💰 预算（元）", 200, 5000, 1500, 100)
+        budget = st.slider("💰 预算（元）", 5000, 60000, 30000, 1000)
     with col2:
         usage_type_rec = st.selectbox("🎯 使用类型", ["Any", "Basic", "Student", "Professional", "Gaming"])
     with col3:
@@ -1312,8 +1312,22 @@ elif page == "🎁 推荐引擎":
 
     st.markdown("---")
 
+    st.markdown("**配件权重（影响推荐排序）**")
+    s1, s2, s3, s4, s5 = st.columns(5)
+    with s1:
+        w_cpu = st.slider("CPU 权重", 0, 100, 25, key="rec_wcpu")
+    with s2:
+        w_gpu = st.slider("GPU 权重", 0, 100, 25, key="rec_wgpu")
+    with s3:
+        w_ram = st.slider("内存 权重", 0, 100, 20, key="rec_wram")
+    with s4:
+        w_sto = st.slider("存储 权重", 0, 100, 20, key="rec_wsto")
+    with s5:
+        w_scr = st.slider("屏幕 权重", 0, 100, 10, key="rec_wscr")
+
+
     df_rec = df.copy()
-    df_rec = df_rec[df_rec["Price_USD"] <= budget]
+    df_rec = df_rec[df_rec["Price_CNY"] <= budget]
     if usage_type_rec != "Any":
         df_rec = df_rec[df_rec["Usage_Type"] == usage_type_rec]
     if PERF_COL:
@@ -1322,17 +1336,38 @@ elif page == "🎁 推荐引擎":
     if len(df_rec) == 0:
         st.warning("😢 没有符合条件的产品，请放宽筛选条件。")
     else:
-        # 按性价比排序
-        if "Price_Performance_Ratio" in df_rec.columns:
+        # 加权评分排序
+        total_w = w_cpu + w_gpu + w_ram + w_sto + w_scr + 0.001
+        if PERF_COL and all(c in df_rec.columns for c in ["CPU_Performance_Score", "GPU_Performance_Score", "RAM_GB", "Storage_GB"]):
+            cpu_n = df_rec["CPU_Performance_Score"] / (df_rec["CPU_Performance_Score"].max() + 0.001)
+            gpu_n = df_rec["GPU_Performance_Score"] / (df_rec["GPU_Performance_Score"].max() + 0.001)
+            ram_n = df_rec["RAM_GB"] / (df_rec["RAM_GB"].max() + 0.001)
+            sto_n = df_rec["Storage_GB"] / (df_rec["Storage_GB"].max() + 0.001)
+            scr_n = df_rec["Screen_Size"] / (df_rec["Screen_Size"].max() + 0.001) if "Screen_Size" in df_rec.columns else 0.5
+            budget_n = 1 - abs(df_rec["Price_CNY"] - budget) / (budget + 0.001)
+            budget_n = budget_n.clip(0, 1)
+            df_rec["_rec_score"] = (
+                cpu_n * w_cpu / total_w +
+                gpu_n * w_gpu / total_w +
+                ram_n * w_ram / total_w +
+                sto_n * w_sto / total_w +
+                scr_n * w_scr / total_w +
+                budget_n * 40 / total_w
+            ) * 100
+            df_rec = df_rec.sort_values("_rec_score", ascending=False)
+        elif "Price_Performance_Ratio" in df_rec.columns:
             df_rec = df_rec.sort_values("Price_Performance_Ratio", ascending=False)
 
         col_a, col_b = st.columns(2)
         with col_a:
             st.metric("✅ 符合条件产品数", len(df_rec))
         with col_b:
-            st.metric("🏆 最高性价比", f"{df_rec['Price_Performance_Ratio'].max():.2f}" if "Price_Performance_Ratio" in df_rec.columns else "N/A")
+            if "_rec_score" in df_rec.columns:
+                st.metric("🏆 最高推荐分", f"{df_rec['_rec_score'].iloc[0]:.1f}")
+            elif "Price_Performance_Ratio" in df_rec.columns:
+                st.metric("🏆 最高性价比", f"{df_rec['Price_Performance_Ratio'].max():.2f}")
 
-        show_cols = [c for c in ["Brand", "Usage_Type", "Price_USD",
+        show_cols = [c for c in ["Brand", "Usage_Type", "Price_CNY",
                                   PERF_COL, "Price_Performance_Ratio",
                                   "CPU_Cores", "RAM_GB", "GPU_Performance_Score"]
                      if c in df_rec.columns]
@@ -1342,7 +1377,7 @@ elif page == "🎁 推荐引擎":
         if PERF_COL:
             st.subheader("🗺️ 推荐结果可视化（Top 50）")
             fig_rec = px.scatter(
-                df_rec.head(50), x="Price_USD", y=PERF_COL,
+                df_rec.head(50), x="Price_CNY", y=PERF_COL,
                 size="Price_Performance_Ratio" if "Price_Performance_Ratio" in df_rec.columns else None,
                 color="Usage_Type" if usage_type_rec == "Any" else None,
                 hover_data=show_cols,
