@@ -16,3 +16,6 @@ python src/main.py
 
 # DIY 推荐工具（加载全量 1.2M，启动稍慢但数据全）
 python src/diy_tool.py
+
+cd "C:\Users\Q\PycharmProjects\small study term1"
+streamlit run app.py
